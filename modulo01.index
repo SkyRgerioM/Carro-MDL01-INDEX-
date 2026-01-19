@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plano de Estudo Interativo - Rogério | Módulo 01</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 300px; max-height: 400px; }
+        @media (min-width: 768px) { .chart-container { height: 350px; } }
+        .card-hover:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        .road-canvas { background-color: #374151; border-radius: 0.5rem; width: 100%; height: 200px; }
+    </style>
+    <!-- Chosen Palette: Traffic Safety (Slate-50, Slate-800, Red-600, Amber-400, Green-600, Blue-500) -->
+    <!-- Application Structure Plan: The app is designed as a vertical dashboard titled 'Rota do Conhecimento' (Route of Knowledge). It breaks the linear report into 4 interactive zones: 1. 'Hierarquia do Poder' (Hierarchy) using a bar chart to visually demonstrate authority levels. 2. 'Galeria de Placas' (Signage Gallery) using tabs to categorize vertical signage, reducing cognitive load. 3. 'Simulador de Pista' (Road Simulator) using a raw Canvas to let the user 'paint' road lines (Yellow/White, Solid/Dashed) to actively learn horizontal signage rules. 4. 'Zona de Atenção & Dicas' (Attention Zone) for special cases and golden tips using flashcard-style highlights. This structure transforms static text into active exploration. -->
+    <!-- Visualization & Content Choices: 1. Hierarchy: Uses a Chart.js Bar Chart. Goal: Inform/Compare. Interaction: Click bars to see details. Justification: Visual height corresponds to authority level, making the hierarchy intuitive. 2. Vertical Signage: Tabbed Interface with color-coded cards. Goal: Organize. Interaction: Switch tabs to filter content. Justification: Prevents scrolling fatigue and groups related concepts. 3. Horizontal Signage: Custom HTML5 Canvas drawing. Goal: Change/Experiment. Interaction: Buttons to toggle line color and style. Justification: Direct manipulation of visual elements reinforces the rule (e.g., 'Yellow = Opposite Direction'). 4. Tips: Icon-based grid. Goal: Inform. Justification: Quick scanning for exam prep. NO SVG/Mermaid used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <!-- Header -->
+    <header class="bg-slate-900 text-white p-6 shadow-lg sticky top-0 z-50">
+        <div class="max-w-4xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight">Auto Escola Digital</h1>
+                <p class="text-slate-400 text-sm">Plano de Estudo do Rogério</p>
+            </div>
+            <div class="text-right">
+                <span class="inline-block px-3 py-1 bg-green-600 rounded-full text-xs font-bold uppercase tracking-wide">Módulo 01 Concluído</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-4xl mx-auto p-4 md:p-8 space-y-12">
+
+        <!-- Intro -->
+        <section class="text-center space-y-4">
+            <h2 class="text-3xl font-bold text-slate-900">Sinalização e Legislação</h2>
+            <p class="text-lg text-slate-600 max-w-2xl mx-auto">
+                Bem-vindo ao seu painel interativo de revisão. Aqui, transformamos as regras do caderno em prática visual.
+                Explore a hierarquia de quem manda na via, simule situações de pista e revise as cores que salvam vidas.
+            </p>
+        </section>
+
+        <!-- Zone 1: Hierarchy -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="mb-6 border-b border-slate-100 pb-4">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center">
+                    <span class="text-2xl mr-2">👮</span> 1. A Hierarquia do Trânsito
+                </h3>
+                <p class="text-slate-600 mt-2">
+                    No trânsito, quando sinais entram em conflito, existe uma ordem clara de quem deve ser obedecido.
+                    Utilize o gráfico abaixo para entender a "Força de Comando" de cada elemento. Clique nas barras para ver os detalhes.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-2 gap-8 items-center">
+                <div class="chart-container">
+                    <canvas id="hierarchyChart"></canvas>
+                </div>
+                <div id="hierarchyDetail" class="bg-slate-50 p-6 rounded-lg border border-slate-200 min-h-[200px] flex flex-col justify-center transition-all duration-300">
+                    <h4 class="text-lg font-bold text-slate-800 mb-2" id="detailTitle">Toque no gráfico</h4>
+                    <p class="text-slate-600" id="detailText">Selecione uma barra ao lado para entender quem tem prioridade na via.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Zone 2: Vertical Signage -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-6 bg-slate-800 text-white">
+                <h3 class="text-xl font-bold flex items-center">
+                    <span class="text-2xl mr-2">🛑</span> 2. Sinalização Vertical (Placas)
+                </h3>
+                <p class="text-slate-300 mt-2">
+                    As placas conversam com você. Navegue pelas abas abaixo para decodificar as três famílias de placas e suas funções vitais.
+                </p>
+            </div>
+
+            <!-- Tabs Navigation -->
+            <div class="flex border-b border-slate-200">
+                <button onclick="switchTab('reg')" class="flex-1 py-4 text-center font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors border-b-2 border-transparent active-tab" id="tab-reg">Regulamentação</button>
+                <button onclick="switchTab('adv')" class="flex-1 py-4 text-center font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors border-b-2 border-transparent" id="tab-adv">Advertência</button>
+                <button onclick="switchTab('ind')" class="flex-1 py-4 text-center font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 transition-colors border-b-2 border-transparent" id="tab-ind">Indicação</button>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6 bg-slate-50">
+                
+                <!-- Regulamentação -->
+                <div id="content-reg" class="tab-content block animate-fade-in">
+                    <div class="flex items-start gap-4 mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-r-lg">
+                        <div class="text-red-500 text-3xl font-bold">!</div>
+                        <div>
+                            <h4 class="font-bold text-red-700">As "Ordens"</h4>
+                            <p class="text-sm text-red-600">O desrespeito gera MULTA e infração. São mandatórias.</p>
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded shadow-sm border border-slate-200">
+                            <h5 class="font-bold text-slate-800">Características Visuais</h5>
+                            <ul class="list-disc list-inside text-slate-600 mt-2 space-y-1">
+                                <li>Borda Vermelha</li>
+                                <li>Fundo Branco</li>
+                                <li>Símbolo Preto</li>
+                            </ul>
+                        </div>
+                        <div class="bg-white p-4 rounded shadow-sm border border-slate-200">
+                            <h5 class="font-bold text-slate-800">Exceções de Formato</h5>
+                            <ul class="mt-2 space-y-2">
+                                <li class="flex items-center gap-2">
+                                    <span class="w-6 h-6 bg-red-600 text-white text-xs flex items-center justify-center font-bold" style="clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);">P</span>
+                                    <span class="text-sm text-slate-600"><strong>PARE (R-1):</strong> Octogonal (8 lados). Exige parada total.</span>
+                                </li>
+                                <li class="flex items-center gap-2">
+                                    <span class="w-6 h-6 border-2 border-red-600 flex items-center justify-center" style="clip-path: polygon(50% 100%, 0 0, 100% 0);"></span>
+                                    <span class="text-sm text-slate-600"><strong>Dê a Preferência (R-2):</strong> Triangular.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Advertência -->
+                <div id="content-adv" class="tab-content hidden animate-fade-in">
+                    <div class="flex items-start gap-4 mb-6 p-4 bg-amber-50 border-l-4 border-amber-500 rounded-r-lg">
+                        <div class="text-amber-500 text-3xl font-bold">⚠</div>
+                        <div>
+                            <h4 class="font-bold text-amber-700">Os "Avisos"</h4>
+                            <p class="text-sm text-amber-600">Alertam sobre perigos. Não geram multa direta, mas ignorá-las pode causar acidentes.</p>
+                        </div>
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <div class="bg-white p-4 rounded shadow-sm border border-slate-200">
+                            <h5 class="font-bold text-slate-800">Identidade Visual</h5>
+                            <div class="flex items-center gap-4 mt-2">
+                                <div class="w-12 h-12 bg-amber-400 border-2 border-black transform rotate-45 flex items-center justify-center shadow-sm">
+                                </div>
+                                <p class="text-slate-600 text-sm">Forma de losango, cor amarela predominante.</p>
+                            </div>
+                        </div>
+                        <div class="bg-white p-4 rounded shadow-sm border border-slate-200">
+                            <h5 class="font-bold text-slate-800">Função Principal</h5>
+                            <p class="text-slate-600 text-sm mt-2">
+                                Prepara o condutor para o que vem à frente: curvas perigosas, área escolar, lombadas ou estreitamento de pista.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Indicação -->
+                <div id="content-ind" class="tab-content hidden animate-fade-in">
+                    <div class="flex items-start gap-4 mb-6 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-lg">
+                        <div class="text-blue-500 text-3xl font-bold">ℹ</div>
+                        <div>
+                            <h4 class="font-bold text-blue-700">As "Orientadoras"</h4>
+                            <p class="text-sm text-blue-600">Guiam o condutor sobre onde ele está e para onde vai.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div class="bg-green-600 text-white p-3 rounded text-center text-sm font-bold shadow hover:bg-green-700 transition">Destinos e Distâncias</div>
+                        <div class="bg-blue-600 text-white p-3 rounded text-center text-sm font-bold shadow hover:bg-blue-700 transition">Serviços e Rodovias</div>
+                        <div class="bg-amber-900 text-white p-3 rounded text-center text-sm font-bold shadow hover:bg-amber-950 transition">Atrativos Turísticos</div>
+                        <div class="bg-white text-slate-800 border border-slate-300 p-3 rounded text-center text-sm font-bold shadow">Educativas</div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Zone 3: Horizontal Signage Simulator -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center">
+                    <span class="text-2xl mr-2">🛣️</span> 3. Laboratório de Pista (Sinalização Horizontal)
+                </h3>
+                <p class="text-slate-600 mt-2">
+                    A cor e o tipo da linha no chão definem se você pode ultrapassar ou mudar de faixa. 
+                    <strong>Configure a pista abaixo</strong> para ver a regra em ação.
+                </p>
+            </div>
+
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Controls -->
+                <div class="space-y-6 lg:col-span-1">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Cor da Linha (Sentido)</label>
+                        <div class="flex gap-2">
+                            <button onclick="updateRoad('color', 'yellow')" id="btn-yellow" class="flex-1 py-2 px-3 rounded bg-amber-400 border-2 border-amber-500 text-slate-900 font-bold text-sm shadow-sm ring-2 ring-offset-2 ring-amber-400">Amarela (Duplo)</button>
+                            <button onclick="updateRoad('color', 'white')" id="btn-white" class="flex-1 py-2 px-3 rounded bg-slate-100 border-2 border-slate-300 text-slate-600 font-bold text-sm hover:bg-slate-200 transition">Branca (Único)</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Tipo da Linha (Permissão)</label>
+                        <div class="flex gap-2">
+                            <button onclick="updateRoad('type', 'solid')" id="btn-solid" class="flex-1 py-2 px-3 rounded bg-slate-800 text-white font-bold text-sm shadow-sm ring-2 ring-offset-2 ring-slate-800">Contínua</button>
+                            <button onclick="updateRoad('type', 'dashed')" id="btn-dashed" class="flex-1 py-2 px-3 rounded bg-slate-100 border border-slate-300 text-slate-600 font-bold text-sm hover:bg-slate-200 transition">Seccionada</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visual Output -->
+                <div class="lg:col-span-2 space-y-4">
+                    <div class="relative">
+                        <canvas id="roadCanvas" class="road-canvas shadow-inner"></canvas>
+                        <!-- Car hints -->
+                        <div class="absolute top-1/4 left-4 text-white/50 text-xs">Fluxo A ⮕</div>
+                        <div id="flow-b-label" class="absolute bottom-1/4 right-4 text-white/50 text-xs">⬅ Fluxo B</div>
+                    </div>
+                    <div id="road-explanation" class="bg-slate-50 border border-slate-200 p-4 rounded-lg">
+                        <h4 class="font-bold text-lg text-slate-800 mb-1" id="road-title">Sentido Duplo, Ultrapassagem Proibida</h4>
+                        <p class="text-slate-600" id="road-desc">
+                            A linha amarela indica que os veículos vêm na contramão. Por ser contínua, é proibido cruzar a linha para ultrapassar.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Zone 4: Special Cases & Tips -->
+        <section class="grid md:grid-cols-2 gap-8">
+            
+            <!-- Special Cases -->
+            <div class="bg-orange-50 rounded-xl p-6 border border-orange-100 shadow-sm">
+                <h3 class="text-xl font-bold text-orange-800 mb-4 flex items-center">
+                    <span class="mr-2">🚧</span> Casos Especiais
+                </h3>
+                <ul class="space-y-4">
+                    <li class="bg-white p-3 rounded-lg shadow-sm border border-orange-100">
+                        <strong class="block text-orange-900 mb-1">Sinalização Temporária (Laranja)</strong>
+                        <p class="text-sm text-slate-600">Indica obras ou eventos. É um alerta provisório. Fique atento a operários e máquinas.</p>
+                    </li>
+                    <li class="bg-white p-3 rounded-lg shadow-sm border border-orange-100">
+                        <strong class="block text-slate-900 mb-1">Linha de Retenção (LRE)</strong>
+                        <p class="text-sm text-slate-600">Marca branca transversal antes da faixa. <span class="text-red-600 font-bold">Parada obrigatória</span> antes dela no sinal vermelho ou placa PARE.</p>
+                    </li>
+                    <li class="bg-white p-3 rounded-lg shadow-sm border border-orange-100">
+                        <strong class="block text-red-700 mb-1">Ciclovias (Vermelho)</strong>
+                        <p class="text-sm text-slate-600">Espaço exclusivo para ciclistas. Respeite a vida sobre duas rodas.</p>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Golden Tips -->
+            <div class="bg-slate-800 rounded-xl p-6 border border-slate-700 shadow-sm text-white">
+                <h3 class="text-xl font-bold text-yellow-400 mb-4 flex items-center">
+                    <span class="mr-2">💡</span> Dicas de Ouro
+                </h3>
+                <div class="grid grid-cols-1 gap-3">
+                    <div class="p-3 bg-slate-700 rounded hover:bg-slate-600 transition cursor-help card-hover">
+                        <span class="font-bold text-red-400">Vermelho = Ordem</span>
+                        <p class="text-xs text-slate-300 mt-1">Obrigatoriedade e Multas.</p>
+                    </div>
+                    <div class="p-3 bg-slate-700 rounded hover:bg-slate-600 transition cursor-help card-hover">
+                        <span class="font-bold text-yellow-400">Amarelo = Atenção</span>
+                        <p class="text-xs text-slate-300 mt-1">Segurança e perigo à frente.</p>
+                    </div>
+                    <div class="p-3 bg-slate-700 rounded hover:bg-slate-600 transition cursor-help card-hover">
+                        <span class="font-bold text-orange-400">Laranja = Obras</span>
+                        <p class="text-xs text-slate-300 mt-1">Situações não permanentes.</p>
+                    </div>
+                    <div class="p-3 bg-slate-700 rounded hover:bg-slate-600 transition cursor-help card-hover">
+                        <span class="font-bold text-white">Placa PARE</span>
+                        <p class="text-xs text-slate-300 mt-1">Velocidade ZERO. Parada total é obrigatória.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-100 border-t border-slate-200 mt-12 py-8 text-center text-slate-500 text-sm">
+        <p>Bons estudos, Rogério! Prepare-se para o Módulo 02.</p>
+    </footer>
+
+    <script>
+        // --- 1. HIERARCHY CHART LOGIC ---
+        const ctxHierarchy = document.getElementById('hierarchyChart').getContext('2d');
+        const hierarchyData = {
+            labels: ['Regras Gerais', 'Sinalização Horizontal', 'Placas (Vertical)', 'Semáforos', 'Agente de Trânsito'],
+            datasets: [{
+                label: 'Nível de Autoridade',
+                data: [1, 2, 3, 4, 5],
+                backgroundColor: [
+                    '#94a3b8', // Regras (Slate 400)
+                    '#cbd5e1', // Horizontal (Slate 300)
+                    '#f87171', // Placas (Red 400)
+                    '#fbbf24', // Semáforo (Amber 400)
+                    '#1e293b'  // Agente (Slate 800 - The Boss)
+                ],
+                borderWidth: 0,
+                borderRadius: 4,
+                hoverBackgroundColor: [
+                    '#64748b',
+                    '#94a3b8',
+                    '#ef4444',
+                    '#f59e0b',
+                    '#0f172a'
+                ]
+            }]
+        };
+
+        const hierarchyDescriptions = [
+            "Normas padrão (ex: preferência da direita). Só valem se não houver nenhuma sinalização.",
+            "Pinturas no chão. Perdem para as placas verticais.",
+            "As Placas (Pare, Proibido Estacionar) mandam mais que o chão.",
+            "O Semáforo prevalece sobre as placas. Se está verde, você vai, mesmo se houver placa de Pare.",
+            "O CHEFE! Se o guarda mandar parar, você para, mesmo se o sinal estiver verde."
+        ];
+
+        const hierarchyTitles = [
+            "5º Lugar: Regras Gerais",
+            "4º Lugar: Sinalização Horizontal",
+            "3º Lugar: Placas Verticais",
+            "2º Lugar: Semáforos",
+            "1º Lugar: Agente de Trânsito"
+        ];
+
+        new Chart(ctxHierarchy, {
+            type: 'bar',
+            data: hierarchyData,
+            options: {
+                indexAxis: 'y', // Horizontal bar chart
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: { enabled: false } // Custom interaction via click
+                },
+                scales: {
+                    x: { display: false, max: 5.5 },
+                    y: { 
+                        grid: { display: false },
+                        ticks: { font: { family: 'Inter', size: 12, weight: 'bold' }, color: '#334155' }
+                    }
+                },
+                onClick: (e, activeElements) => {
+                    if (activeElements.length > 0) {
+                        const index = activeElements[0].index;
+                        document.getElementById('detailTitle').innerText = hierarchyTitles[index];
+                        document.getElementById('detailText').innerText = hierarchyDescriptions[index];
+                        document.getElementById('hierarchyDetail').classList.add('bg-blue-50', 'border-blue-200');
+                        setTimeout(() => document.getElementById('hierarchyDetail').classList.remove('bg-blue-50', 'border-blue-200'), 300);
+                    }
+                }
+            }
+        });
+
+        // --- 2. TABS LOGIC ---
+        function switchTab(tabId) {
+            // Hide all content
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
+            
+            // Show selected
+            document.getElementById(`content-${tabId}`).classList.remove('hidden');
+            document.getElementById(`content-${tabId}`).classList.add('block');
+
+            // Reset buttons styling
+            const buttons = document.querySelectorAll('button[id^="tab-"]');
+            buttons.forEach(btn => {
+                btn.classList.remove('border-slate-800', 'text-slate-800', 'active-tab');
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+
+            // Highlight active button
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.remove('border-transparent', 'text-slate-500');
+            activeBtn.classList.add('border-slate-800', 'text-slate-800', 'active-tab');
+        }
+        
+        // Initialize default tab styling
+        switchTab('reg');
+
+        // --- 3. ROAD SIMULATOR LOGIC ---
+        const canvas = document.getElementById('roadCanvas');
+        const ctx = canvas.getContext('2d');
+        let roadState = { color: 'yellow', type: 'solid' };
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = 200;
+            drawRoad();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function drawRoad() {
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // Asphalt
+            ctx.fillStyle = '#374151'; // Gray 700
+            ctx.fillRect(0, 0, w, h);
+
+            // Border lines (white solid usually)
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 4;
+            ctx.setLineDash([]);
+            ctx.beginPath();
+            ctx.moveTo(0, 10); ctx.lineTo(w, 10);
+            ctx.moveTo(0, h - 10); ctx.lineTo(w, h - 10);
+            ctx.stroke();
+
+            // Center Line (Dynamic)
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = roadState.color === 'yellow' ? '#fbbf24' : 'white'; // Amber 400 or White
+            
+            if (roadState.type === 'dashed') {
+                ctx.setLineDash([20, 20]); // Dashed
+            } else {
+                ctx.setLineDash([]); // Solid
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(0, h / 2);
+            ctx.lineTo(w, h / 2);
+            ctx.stroke();
+        }
+
+        function updateRoad(prop, val) {
+            roadState[prop] = val;
+            
+            // Update UI Buttons
+            if(prop === 'color') {
+                document.getElementById('btn-yellow').className = val === 'yellow' ? "flex-1 py-2 px-3 rounded bg-amber-400 border-2 border-amber-500 text-slate-900 font-bold text-sm shadow-sm ring-2 ring-offset-2 ring-amber-400" : "flex-1 py-2 px-3 rounded bg-slate-100 border border-slate-300 text-slate-600 font-bold text-sm hover:bg-slate-200 transition";
+                document.getElementById('btn-white').className = val === 'white' ? "flex-1 py-2 px-3 rounded bg-white border-2 border-slate-400 text-slate-900 font-bold text-sm shadow-sm ring-2 ring-offset-2 ring-slate-300" : "flex-1 py-2 px-3 rounded bg-slate-100 border border-slate-300 text-slate-600 font-bold text-sm hover:bg-slate-200 transition";
+                
+                // Update text label for flow B
+                const flowB = document.getElementById('flow-b-label');
+                if(val === 'white') {
+                    flowB.innerText = "Fluxo B ⮕ (Mesmo Sentido)";
+                    flowB.classList.remove('right-4');
+                    flowB.classList.add('left-4');
+                    flowB.style.top = "60%";
+                } else {
+                    flowB.innerText = "⬅ Fluxo B (Sentido Oposto)";
+                    flowB.classList.add('right-4');
+                    flowB.classList.remove('left-4');
+                    flowB.style.top = "";
+                }
+            }
+            
+            if(prop === 'type') {
+                document.getElementById('btn-solid').className = val === 'solid' ? "flex-1 py-2 px-3 rounded bg-slate-800 text-white font-bold text-sm shadow-sm ring-2 ring-offset-2 ring-slate-800" : "flex-1 py-2 px-3 rounded bg-slate-100 border border-slate-300 text-slate-600 font-bold text-sm hover:bg-slate-200 transition";
+                document.getElementById('btn-dashed').className = val === 'dashed' ? "flex-1 py-2 px-3 rounded bg-slate-800 text-white font-bold text-sm shadow-sm ring-2 ring-offset-2 ring-slate-800" : "flex-1 py-2 px-3 rounded bg-slate-100 border border-slate-300 text-slate-600 font-bold text-sm hover:bg-slate-200 transition";
+            }
+
+            drawRoad();
+            updateText();
+        }
+
+        function updateText() {
+            const title = document.getElementById('road-title');
+            const desc = document.getElementById('road-desc');
+
+            if (roadState.color === 'yellow') {
+                if (roadState.type === 'solid') {
+                    title.innerText = "Mão Dupla, Proibido Ultrapassar";
+                    desc.innerText = "Linha amarela separa sentidos opostos. Linha contínua proíbe a ultrapassagem em ambos os sentidos.";
+                    desc.className = "text-red-600 font-medium";
+                } else {
+                    title.innerText = "Mão Dupla, Ultrapassagem Permitida";
+                    desc.innerText = "Linha amarela separa sentidos opostos. O tracejado indica que você pode ultrapassar, se for seguro.";
+                    desc.className = "text-green-700 font-medium";
+                }
+            } else {
+                if (roadState.type === 'solid') {
+                    title.innerText = "Mão Única, Proibido Mudar de Faixa";
+                    desc.innerText = "Linha branca separa fluxos no mesmo sentido. Contínua indica que você deve manter-se na sua faixa.";
+                    desc.className = "text-slate-600";
+                } else {
+                    title.innerText = "Mão Única, Mudança de Faixa Permitida";
+                    desc.innerText = "Linha branca separa fluxos no mesmo sentido. Tracejada permite a transposição de faixas.";
+                    desc.className = "text-slate-600";
+                }
+            }
+        }
+
+        // Initial Draw
+        setTimeout(resizeCanvas, 100);
+
+    </script>
+</body>
+</html>
